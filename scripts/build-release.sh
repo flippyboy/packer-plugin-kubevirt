@@ -48,6 +48,7 @@ for platform in "${platforms[@]}"; do
   GOOS="${platform%%:*}"
   GOARCH="${platform##*:}"
   BIN="packer-plugin-kubevirt_v${VERSION}_${API}_${GOOS}_${GOARCH}"
+  ZIP="packer-plugin-kubevirt_v${VERSION}_${API}_${GOOS}_${GOARCH}.zip"
   if [[ "${GOOS}" == "windows" ]]; then
     BIN="${BIN}.exe"
   fi
@@ -57,9 +58,18 @@ for platform in "${platforms[@]}"; do
     go build -trimpath -buildvcs=false -ldflags="${LDFLAGS}" -o "${DIST}/${BIN}" "${ROOT}"
 
   cp "${ROOT}/LICENSE" "${DIST}/LICENSE.txt"
-  ZIP="${DIST}/packer-plugin-kubevirt_${VERSION}_${GOOS}_${GOARCH}.zip"
-  zip_files "${ZIP}" "${DIST}/${BIN}" "${DIST}/LICENSE.txt"
+  zip_files "${DIST}/${ZIP}" "${DIST}/${BIN}" "${DIST}/LICENSE.txt"
   rm -f "${DIST}/${BIN}" "${DIST}/LICENSE.txt"
 done
 
+CHECKSUMS="${DIST}/packer-plugin-kubevirt_v${VERSION}_SHA256SUMS"
+(
+  cd "${DIST}"
+  sha256sum packer-plugin-kubevirt_v"${VERSION}"_"${API}"_*.zip | LC_ALL=C sort -k2 > "$(basename "${CHECKSUMS}")"
+)
+
+sed -e "s/PLACEHOLDER_PROTOCOL_VERSION/${API#x}/g" "${ROOT}/manifest.json" \
+  > "${DIST}/packer-plugin-kubevirt_v${VERSION}_manifest.json"
+
 echo "Built $(ls "${DIST}"/*.zip | wc -l) release archives in ${DIST}"
+echo "Checksums: ${CHECKSUMS}"
