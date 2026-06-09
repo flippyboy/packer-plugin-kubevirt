@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Local release helper. Prefer cutting releases via GitHub Actions:
+#   1. Update version/VERSION, version/version.go, and CHANGELOG.md
+#   2. git tag vX.Y.Z && git push origin vX.Y.Z
 set -euo pipefail
 
 VERSION="${1:-0.9.0}"

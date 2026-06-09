@@ -94,12 +94,18 @@ type Config struct {
 	// If no networks are specified, a single pod network will be used.
 	Networks []Network `mapstructure:"networks" required:"false"`
 	// MediaFiles is a path list of files to be copied and used during the ISO installation.
+	// On Linux these files are attached as an OEMDRV volume. On Windows, prefer
+	// sysprep_files and sysprep_content for the KubeVirt sysprep volume.
 	MediaFiles []string `mapstructure:"media_files" required:"false"`
-	// CdContent is a map of filename to inline file content for the install-time
-	// media volume. Keys are filenames at the CD root (e.g. "autounattend.xml").
-	// Can be used alongside media_files; cd_content takes precedence when both
-	// define the same filename.
-	CdContent map[string]string `mapstructure:"cd_content" required:"false"`
+	// SysprepFiles is a path list of files to include on the KubeVirt sysprep volume.
+	// Only valid when os_type is "windows".
+	SysprepFiles []string `mapstructure:"sysprep_files" required:"false"`
+	// SysprepContent is a map of filename to inline file content for the KubeVirt
+	// sysprep volume. Keys are filenames at the volume root (e.g. "autounattend.xml").
+	// Values support Packer template interpolation (e.g. templatefile()).
+	// Can be used alongside sysprep_files; sysprep_content takes precedence when both
+	// define the same filename. Only valid when os_type is "windows".
+	SysprepContent map[string]string `mapstructure:"sysprep_content" required:"false"`
 	// BootCommand is a list of strings that represent the keystrokes to be sent to the VM console
 	// to automate the installation via a new VNC connection.
 	BootCommand []string `mapstructure:"boot_command" required:"false"`
@@ -161,5 +167,14 @@ func (c *Config) Prepare(raws ...interface{}) ([]string, error) {
 			return nil, fmt.Errorf("network %q: only one of pod or multus can be defined", n.Name)
 		}
 	}
+
+	osType := c.OperatingSystemType
+	if osType == "" {
+		osType = "linux"
+	}
+	if osType != "windows" && (len(c.SysprepFiles) > 0 || len(c.SysprepContent) > 0) {
+		return nil, fmt.Errorf("sysprep_files and sysprep_content are only supported when os_type is \"windows\"")
+	}
+
 	return nil, err
 }

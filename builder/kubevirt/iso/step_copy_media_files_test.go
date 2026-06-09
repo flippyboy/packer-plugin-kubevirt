@@ -79,9 +79,10 @@ var _ = Describe("StepCopyMediaFiles", func() {
 			Expect(cm.Data).To(HaveKey("file2.iso"))
 		})
 
-		It("continues when only cd_content is provided", func() {
+		It("continues when only sysprep_content is provided for Windows", func() {
+			step.Config.OperatingSystemType = "windows"
 			step.Config.MediaFiles = nil
-			step.Config.CdContent = map[string]string{
+			step.Config.SysprepContent = map[string]string{
 				"autounattend.xml": "<unattend/>",
 			}
 
@@ -93,14 +94,17 @@ var _ = Describe("StepCopyMediaFiles", func() {
 			Expect(cm.Data).To(HaveKeyWithValue("autounattend.xml", "<unattend/>"))
 		})
 
-		It("gives cd_content precedence over media_files for the same filename", func() {
-			err := os.WriteFile("file1.iso", []byte("from file"), 0644)
-			Expect(err).NotTo(HaveOccurred())
-			defer os.Remove("file1.iso")
+		It("gives sysprep_content precedence over sysprep_files for the same filename", func() {
+			step.Config.OperatingSystemType = "windows"
+			step.Config.MediaFiles = nil
 
-			step.Config.MediaFiles = []string{"file1.iso"}
-			step.Config.CdContent = map[string]string{
-				"file1.iso": "from content",
+			err := os.WriteFile("autounattend.xml", []byte("from file"), 0644)
+			Expect(err).NotTo(HaveOccurred())
+			defer os.Remove("autounattend.xml")
+
+			step.Config.SysprepFiles = []string{"autounattend.xml"}
+			step.Config.SysprepContent = map[string]string{
+				"autounattend.xml": "from content",
 			}
 
 			action := step.Run(context.Background(), state)
@@ -108,7 +112,7 @@ var _ = Describe("StepCopyMediaFiles", func() {
 
 			cm, err := kubeClient.CoreV1().ConfigMaps(namespace).Get(context.Background(), name, metav1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
-			Expect(cm.Data).To(HaveKeyWithValue("file1.iso", "from content"))
+			Expect(cm.Data).To(HaveKeyWithValue("autounattend.xml", "from content"))
 		})
 
 		It("halts when ConfigMap creation fails due to invalid media files", func() {

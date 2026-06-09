@@ -31,7 +31,8 @@ type FlatConfig struct {
 	OperatingSystemType     *string           `mapstructure:"os_type" required:"false" cty:"os_type" hcl:"os_type"`
 	Networks                []FlatNetwork     `mapstructure:"networks" required:"false" cty:"networks" hcl:"networks"`
 	MediaFiles              []string          `mapstructure:"media_files" required:"false" cty:"media_files" hcl:"media_files"`
-	CdContent               map[string]string `mapstructure:"cd_content" required:"false" cty:"cd_content" hcl:"cd_content"`
+	SysprepFiles            []string          `mapstructure:"sysprep_files" required:"false" cty:"sysprep_files" hcl:"sysprep_files"`
+	SysprepContent          map[string]string `mapstructure:"sysprep_content" required:"false" cty:"sysprep_content" hcl:"sysprep_content"`
 	BootCommand             []string          `mapstructure:"boot_command" required:"false" cty:"boot_command" hcl:"boot_command"`
 	BootWait                *string           `mapstructure:"boot_wait" required:"false" cty:"boot_wait" hcl:"boot_wait"`
 	InstallationWaitTimeout *string           `mapstructure:"installation_wait_timeout" required:"true" cty:"installation_wait_timeout" hcl:"installation_wait_timeout"`
@@ -84,7 +85,8 @@ func (*FlatConfig) HCL2Spec() map[string]hcldec.Spec {
 		"os_type":                    &hcldec.AttrSpec{Name: "os_type", Type: cty.String, Required: false},
 		"networks":                   &hcldec.BlockListSpec{TypeName: "networks", Nested: hcldec.ObjectSpec((*FlatNetwork)(nil).HCL2Spec())},
 		"media_files":                &hcldec.AttrSpec{Name: "media_files", Type: cty.List(cty.String), Required: false},
-		"cd_content":                 &hcldec.AttrSpec{Name: "cd_content", Type: cty.Map(cty.String), Required: false},
+		"sysprep_files":              &hcldec.AttrSpec{Name: "sysprep_files", Type: cty.List(cty.String), Required: false},
+		"sysprep_content":            &hcldec.AttrSpec{Name: "sysprep_content", Type: cty.Map(cty.String), Required: false},
 		"boot_command":               &hcldec.AttrSpec{Name: "boot_command", Type: cty.List(cty.String), Required: false},
 		"boot_wait":                  &hcldec.AttrSpec{Name: "boot_wait", Type: cty.String, Required: false},
 		"installation_wait_timeout":  &hcldec.AttrSpec{Name: "installation_wait_timeout", Type: cty.String, Required: false},

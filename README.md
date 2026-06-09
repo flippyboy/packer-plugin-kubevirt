@@ -67,7 +67,7 @@ $ packer plugins install --path packer-plugin-kubevirt github.com/flippyboy/kube
 Clone the repository and build the plugin from the root directory:
 
 ```shell
-$ go build -ldflags="-X github.com/flippyboy/packer-plugin-kubevirt/version.Version=0.9.0" -o packer-plugin-kubevirt
+$ go build -ldflags="-X github.com/flippyboy/packer-plugin-kubevirt/version.Version=0.9.1" -o packer-plugin-kubevirt
 ```
 
 Then install the compiled plugin:
@@ -75,6 +75,16 @@ Then install the compiled plugin:
 ```shell
 $ packer plugins install --path packer-plugin-kubevirt github.com/flippyboy/kubevirt
 ```
+
+## Releases
+
+Releases are built and published automatically when a version tag is pushed:
+
+1. Update `version/VERSION`, `version/version.go`, and `CHANGELOG.md`
+2. Commit and push to `main`
+3. Create and push a tag: `git tag vX.Y.Z && git push origin vX.Y.Z`
+
+The [release workflow](.github/workflows/release.yml) runs tests, builds all platform archives, generates `SHA256SUMS`, and publishes the GitHub release.
 
 ## Usage
 

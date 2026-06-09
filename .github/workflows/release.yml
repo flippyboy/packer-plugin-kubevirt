@@ -1,0 +1,157 @@
+#
+# Build and publish a GitHub release when a version tag is pushed.
+#
+# To cut a release:
+#   1. Update version/VERSION, version/version.go, and CHANGELOG.md
+#   2. Commit and push to main
+#   3. git tag vX.Y.Z && git push origin vX.Y.Z
+#
+
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+env:
+  REPO_NAME: packer-plugin-kubevirt
+  MODULE: github.com/flippyboy/packer-plugin-kubevirt/version
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
+        with:
+          go-version-file: .go-version
+
+      - name: Validate version files match tag
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          FILE_VERSION="$(tr -d '\n' < version/VERSION)"
+          if [ "$TAG_VERSION" != "$FILE_VERSION" ]; then
+            echo "Tag ${GITHUB_REF_NAME} does not match version/VERSION (${FILE_VERSION})"
+            exit 1
+          fi
+          if ! grep -q "Version           = \"${TAG_VERSION}\"" version/version.go; then
+            echo "version/version.go does not contain Version = \"${TAG_VERSION}\""
+            exit 1
+          fi
+
+      - run: go test ./...
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { goos: darwin, goarch: amd64 }
+          - { goos: darwin, goarch: arm64 }
+          - { goos: linux, goarch: "386" }
+          - { goos: linux, goarch: amd64 }
+          - { goos: linux, goarch: arm }
+          - { goos: linux, goarch: arm64 }
+          - { goos: freebsd, goarch: "386" }
+          - { goos: freebsd, goarch: amd64 }
+          - { goos: freebsd, goarch: arm }
+          - { goos: netbsd, goarch: "386" }
+          - { goos: netbsd, goarch: amd64 }
+          - { goos: netbsd, goarch: arm }
+          - { goos: openbsd, goarch: "386" }
+          - { goos: openbsd, goarch: amd64 }
+          - { goos: openbsd, goarch: arm }
+          - { goos: solaris, goarch: amd64 }
+          - { goos: windows, goarch: "386" }
+          - { goos: windows, goarch: amd64 }
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
+        with:
+          go-version-file: .go-version
+
+      - name: Get plugin API version
+        id: plugin
+        run: echo "api_version=$(go run . describe | jq -r '.api_version')" >> $GITHUB_OUTPUT
+
+      - name: Build and package
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          VERSION: ${{ github.ref_name }}
+          API_VERSION: ${{ steps.plugin.outputs.api_version }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          BIN="${REPO_NAME}_v${VERSION}_${API_VERSION}_${GOOS}_${GOARCH}"
+          ZIP="${REPO_NAME}_v${VERSION}_${API_VERSION}_${GOOS}_${GOARCH}.zip"
+          if [ "$GOOS" = "windows" ]; then
+            BIN="${BIN}.exe"
+          fi
+
+          mkdir -p dist
+          env CGO_ENABLED=0 \
+            go build -trimpath -buildvcs=false \
+            -ldflags="-s -w -X ${MODULE}.Version=${VERSION}" \
+            -o "dist/${BIN}" .
+
+          cp LICENSE dist/LICENSE.txt
+          (cd dist && zip -q "${ZIP}" "${BIN}" LICENSE.txt)
+
+      - uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+        with:
+          name: ${{ matrix.goos }}-${{ matrix.goarch }}
+          path: dist/*.zip
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
+        with:
+          go-version-file: .go-version
+
+      - uses: actions/download-artifact@fa0a81b229eeafa0972ac6495d3e7a8bf666fdd # v4.1.8
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Get plugin API version
+        id: plugin
+        run: |
+          echo "api_version=$(go run . describe | jq -r '.api_version')" >> $GITHUB_OUTPUT
+
+      - name: Generate checksums and manifest
+        env:
+          API_VERSION: ${{ steps.plugin.outputs.api_version }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          (
+            cd dist
+            sha256sum ${REPO_NAME}_v"${VERSION}"_"${API_VERSION}"_*.zip | LC_ALL=C sort -k2 \
+              > ${REPO_NAME}_v"${VERSION}"_SHA256SUMS
+          )
+          sed -e "s/PLACEHOLDER_PROTOCOL_VERSION/${API_VERSION#x}/g" manifest.json \
+            > dist/${REPO_NAME}_v"${VERSION}"_manifest.json
+
+      - name: Extract release notes
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          sed -n "/^## ${VERSION}\$/,/^## /p" CHANGELOG.md | sed '$d' > release-notes.md
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@a74a400ed65a5a1e1e4aa5be9509bfc8f8f8e198 # v2.0.1
+        with:
+          files: dist/*
+          body_path: release-notes.md
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}

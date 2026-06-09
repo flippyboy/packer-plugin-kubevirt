@@ -22,11 +22,10 @@ func (s *StepCopyMediaFiles) Run(ctx context.Context, state multistep.StateBag) 
 	ui := state.Get("ui").(packer.Ui)
 	name := s.Config.Name
 	namespace := s.Config.Namespace
-	mediaFiles := s.Config.MediaFiles
 
-	ui.Sayf("Creating a new ConfigMap to store media files (%s/%s)...", namespace, name)
+	ui.Sayf("Creating a new ConfigMap to store installation media (%s/%s)...", namespace, name)
 
-	configMap, err := configMap(name, mediaFiles, s.Config.CdContent)
+	configMap, err := configMap(name, s.Config)
 	if err != nil {
 		ui.Error(err.Error())
 		return multistep.ActionHalt

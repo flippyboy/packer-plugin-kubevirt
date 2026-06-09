@@ -1,3 +1,10 @@
+## 0.9.1
+
+### IMPROVEMENTS:
+
+* feat: add `sysprep_content` and `sysprep_files` for KubeVirt sysprep volume (templated inline content)
+* ci: publish GitHub releases via tag-triggered workflow
+
 ## 0.9.0
 
 Fork maintained at [flippyboy/packer-plugin-kubevirt](https://github.com/flippyboy/packer-plugin-kubevirt).
@@ -5,7 +12,7 @@ Fork maintained at [flippyboy/packer-plugin-kubevirt](https://github.com/flippyb
 ### IMPROVEMENTS:
 
 * feat: add `storage_class` option for plugin-created DataVolumes
-* feat: add `cd_content` option for inline sysprep/kickstart files (similar to vsphere-iso)
+* feat: add `cd_content` option for inline install media (superseded by `sysprep_content` in 0.9.1)
 
 ## 0.8.0
 Migrated codebase from [kv-infra/packer-plugin-kubevirt](https://github.com/kv-infra/packer-plugin-kubevirt)

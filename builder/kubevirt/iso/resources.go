@@ -17,21 +17,54 @@ import (
 	cdiv1 "kubevirt.io/containerized-data-importer-api/pkg/apis/core/v1beta1"
 )
 
-func configMap(name string, mediaFiles []string, cdContent map[string]string) (*corev1.ConfigMap, error) {
-	data := make(map[string]string)
-
-	for _, path := range mediaFiles {
+func readFilesIntoData(data map[string]string, paths []string) error {
+	for _, path := range paths {
 		content, err := os.ReadFile(path)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		filename := filepath.Base(path)
 		data[filename] = string(content)
 	}
+	return nil
+}
 
-	for filename, content := range cdContent {
-		data[filename] = content
+// BuildConfigMapData assembles ConfigMap data for the installation media volume.
+// Linux uses media_files (OEMDRV). Windows uses sysprep_files, media_files, and
+// sysprep_content for the KubeVirt sysprep volume.
+func BuildConfigMapData(cfg Config) (map[string]string, error) {
+	data := make(map[string]string)
+
+	osType := cfg.OperatingSystemType
+	if osType == "" {
+		osType = "linux"
+	}
+
+	switch osType {
+	case "windows":
+		if err := readFilesIntoData(data, cfg.SysprepFiles); err != nil {
+			return nil, err
+		}
+		if err := readFilesIntoData(data, cfg.MediaFiles); err != nil {
+			return nil, err
+		}
+		for filename, content := range cfg.SysprepContent {
+			data[filename] = content
+		}
+	default:
+		if err := readFilesIntoData(data, cfg.MediaFiles); err != nil {
+			return nil, err
+		}
+	}
+
+	return data, nil
+}
+
+func configMap(name string, cfg Config) (*corev1.ConfigMap, error) {
+	data, err := BuildConfigMapData(cfg)
+	if err != nil {
+		return nil, err
 	}
 
 	return &corev1.ConfigMap{

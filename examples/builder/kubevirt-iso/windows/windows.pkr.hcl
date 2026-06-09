@@ -30,9 +30,9 @@ source "kubevirt-iso" "windows" {
   preference    = "windows.11.virtio"
   os_type       = "windows"
 
-  # Inline sysprep files (similar to vsphere-iso cd_content).
-  # cd_content takes precedence over media_files when both define the same filename.
-  cd_content = {
+  # KubeVirt sysprep volume content. sysprep_content supports templating via
+  # templatefile(); it takes precedence over sysprep_files for the same filename.
+  sysprep_content = {
     #
     # Note: To avoid License error, set "AcceptEula" to "true" in the "autounattend.xml" file.
     #
@@ -43,8 +43,7 @@ source "kubevirt-iso" "windows" {
     "autounattend.xml" = file("${path.root}/autounattend.xml")
   }
 
-  # Additional files to include in the sysprep CD
-  media_files = [
+  sysprep_files = [
     "./install-misc.ps1",
     "./set-network.ps1",
     "./enable-winrm.ps1"

@@ -17,11 +17,17 @@
   If no networks are specified, a single pod network will be used.
 
 - `media_files` ([]string) - MediaFiles is a path list of files to be copied and used during the ISO installation.
+  On Linux these files are attached as an OEMDRV volume. On Windows, prefer
+  sysprep_files and sysprep_content for the KubeVirt sysprep volume.
 
-- `cd_content` (map[string]string) - CdContent is a map of filename to inline file content for the install-time
-  media volume. Keys are filenames at the CD root (e.g. "autounattend.xml").
-  Can be used alongside media_files; cd_content takes precedence when both
-  define the same filename.
+- `sysprep_files` ([]string) - SysprepFiles is a path list of files to include on the KubeVirt sysprep volume.
+  Only valid when os_type is "windows".
+
+- `sysprep_content` (map[string]string) - SysprepContent is a map of filename to inline file content for the KubeVirt
+  sysprep volume. Keys are filenames at the volume root (e.g. "autounattend.xml").
+  Values support Packer template interpolation (e.g. templatefile()).
+  Can be used alongside sysprep_files; sysprep_content takes precedence when both
+  define the same filename. Only valid when os_type is "windows".
 
 - `boot_command` ([]string) - BootCommand is a list of strings that represent the keystrokes to be sent to the VM console
   to automate the installation via a new VNC connection.

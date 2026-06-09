@@ -1,8 +1,6 @@
 name: Notify Integration Release (Tag)
 on:
-  push:
-    tags:
-      - '*.*.*'   # Proper releases
+  workflow_dispatch:
 jobs:
   strip-version:
     runs-on: ubuntu-latest
