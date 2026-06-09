@@ -51,7 +51,7 @@ jobs:
       - name: set-ld-flags
         id: set-ld-flags
         run: |
-          T="github.com/hashicorp/packer-plugin-kubevirt/version"
+          T="github.com/flippyboy/packer-plugin-kubevirt/version"
           echo "set-ld-flags=-s -w -X ${T}.Version=${{ steps.set-product-version.outputs.base-product-version }} -X ${T}.VersionPrerelease=${{ steps.set-product-version.outputs.prerelease-product-version }}" >> $GITHUB_OUTPUT
       - name: validate outputs
         run: |

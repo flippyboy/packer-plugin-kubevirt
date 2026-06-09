@@ -4,8 +4,8 @@
 packer {
   required_plugins {
     kubevirt = {
-      source  = "github.com/hashicorp/kubevirt"
-      version = ">= 0.8.0"
+      source  = "github.com/flippyboy/kubevirt"
+      version = ">= 0.9.0"
     }
   }
 }
@@ -30,8 +30,9 @@ source "kubevirt-iso" "windows" {
   preference    = "windows.11.virtio"
   os_type       = "windows"
 
-  # Files to include in the ISO installation
-  media_files = [
+  # Inline sysprep files (similar to vsphere-iso cd_content).
+  # cd_content takes precedence over media_files when both define the same filename.
+  cd_content = {
     #
     # Note: To avoid License error, set "AcceptEula" to "true" in the "autounattend.xml" file.
     #
@@ -39,7 +40,11 @@ source "kubevirt-iso" "windows" {
     # applicable Microsoft end user license agreement(s) for each deployment
     # or installation for the Microsoft product(s).
     #
-    "./autounattend.xml",
+    "autounattend.xml" = file("${path.root}/autounattend.xml")
+  }
+
+  # Additional files to include in the sysprep CD
+  media_files = [
     "./install-misc.ps1",
     "./set-network.ps1",
     "./enable-winrm.ps1"

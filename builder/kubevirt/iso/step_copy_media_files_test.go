@@ -12,7 +12,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/hashicorp/packer-plugin-kubevirt/builder/kubevirt/iso"
+	"github.com/flippyboy/packer-plugin-kubevirt/builder/kubevirt/iso"
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
 	"github.com/hashicorp/packer-plugin-sdk/packer"
 
@@ -77,6 +77,38 @@ var _ = Describe("StepCopyMediaFiles", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(cm.Data).To(HaveKey("file1.iso"))
 			Expect(cm.Data).To(HaveKey("file2.iso"))
+		})
+
+		It("continues when only cd_content is provided", func() {
+			step.Config.MediaFiles = nil
+			step.Config.CdContent = map[string]string{
+				"autounattend.xml": "<unattend/>",
+			}
+
+			action := step.Run(context.Background(), state)
+			Expect(action).To(Equal(multistep.ActionContinue))
+
+			cm, err := kubeClient.CoreV1().ConfigMaps(namespace).Get(context.Background(), name, metav1.GetOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(cm.Data).To(HaveKeyWithValue("autounattend.xml", "<unattend/>"))
+		})
+
+		It("gives cd_content precedence over media_files for the same filename", func() {
+			err := os.WriteFile("file1.iso", []byte("from file"), 0644)
+			Expect(err).NotTo(HaveOccurred())
+			defer os.Remove("file1.iso")
+
+			step.Config.MediaFiles = []string{"file1.iso"}
+			step.Config.CdContent = map[string]string{
+				"file1.iso": "from content",
+			}
+
+			action := step.Run(context.Background(), state)
+			Expect(action).To(Equal(multistep.ActionContinue))
+
+			cm, err := kubeClient.CoreV1().ConfigMaps(namespace).Get(context.Background(), name, metav1.GetOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(cm.Data).To(HaveKeyWithValue("file1.iso", "from content"))
 		})
 
 		It("halts when ConfigMap creation fails due to invalid media files", func() {

@@ -1,3 +1,12 @@
+## 0.9.0
+
+Fork maintained at [flippyboy/packer-plugin-kubevirt](https://github.com/flippyboy/packer-plugin-kubevirt).
+
+### IMPROVEMENTS:
+
+* feat: add `storage_class` option for plugin-created DataVolumes
+* feat: add `cd_content` option for inline sysprep/kickstart files (similar to vsphere-iso)
+
 ## 0.8.0
 Migrated codebase from [kv-infra/packer-plugin-kubevirt](https://github.com/kv-infra/packer-plugin-kubevirt)
 ### IMPROVEMENTS:

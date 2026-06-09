@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/hashicorp/packer-plugin-kubevirt/builder/kubevirt/iso"
-	"github.com/hashicorp/packer-plugin-kubevirt/version"
+	"github.com/flippyboy/packer-plugin-kubevirt/builder/kubevirt/iso"
+	"github.com/flippyboy/packer-plugin-kubevirt/version"
 	"github.com/hashicorp/packer-plugin-sdk/plugin"
 )
 

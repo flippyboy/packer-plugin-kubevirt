@@ -1,5 +1,9 @@
 <!-- Code generated from the comments of the Config struct in builder/kubevirt/iso/config.go; DO NOT EDIT MANUALLY -->
 
+- `storage_class` (string) - StorageClass is the Kubernetes StorageClass name used for DataVolumes
+  created by this builder (the temporary root disk and the bootable clone).
+  If empty, the cluster default StorageClass is used.
+
 - `instance_type_kind` (string) - InstanceTypeKind is the kind of the InstanceType resource to use in the temporary VM.
   Other supported value is "virtualmachineclusterinstancetype".
 
@@ -13,6 +17,11 @@
   If no networks are specified, a single pod network will be used.
 
 - `media_files` ([]string) - MediaFiles is a path list of files to be copied and used during the ISO installation.
+
+- `cd_content` (map[string]string) - CdContent is a map of filename to inline file content for the install-time
+  media volume. Keys are filenames at the CD root (e.g. "autounattend.xml").
+  Can be used alongside media_files; cd_content takes precedence when both
+  define the same filename.
 
 - `boot_command` ([]string) - BootCommand is a list of strings that represent the keystrokes to be sent to the VM console
   to automate the installation via a new VNC connection.

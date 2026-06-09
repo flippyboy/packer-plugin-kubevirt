@@ -76,16 +76,16 @@ POSIX-like environments (macOS, Linux, Cygwin, etc.) so you may need to
 adjust them for Windows or other shells.
 
 1. Download the Kubevirt plugin source (and its dependencies) by running
-   `go get github.com/hashicorp/packer-plugin-kubevirt`. This will download the source to
-   `$GOPATH/src/github.com/hashicorp/packer-plugin-kubevirt`.
+   `go get github.com/flippyboy/packer-plugin-kubevirt`. This will download the source to
+   `$GOPATH/src/github.com/flippyboy/packer-plugin-kubevirt`.
 
-2. When working on the Kubevirt plugin, first `cd $GOPATH/src/github.com/hashicorp/packer-plugin-kubevirt`
+2. When working on the Kubevirt plugin, first `cd $GOPATH/src/github.com/flippyboy/packer-plugin-kubevirt`
    so you can run `make dev` and easily access other files. `make dev` will build the packer-plugin-kubevirt binary and install it under `$HOME/.packer.d/plugins/`.
 
 3. Make your changes to the Kubevirt plugin source. You can run `make dev` to build and install locally, and `make test` to run unit tests.
    Any compilation errors will be shown when the binaries are rebuilding. If you don't have `make` you can simply run `go build -o packer-plugin-kubevirt` from the project root, and `mv packer-plugin-kubevirt ~/.packer.d/plugins/packer-plugin-kubevirt` to install the plugin.
 
-4. After building the Kubevirt plugin successfully, use the latest version of Packer to build a machine and verify your changes. In the [example folder](https://github.com/hashicorp/packer-plugin-kubevirt/blob/main/example) we provide a basic template. Comment out the `packer {}` block to force Packer use the development binary installed in the previous step.
+4. After building the Kubevirt plugin successfully, use the latest version of Packer to build a machine and verify your changes. In the [example folder](https://github.com/flippyboy/packer-plugin-kubevirt/blob/main/example) we provide a basic template. Comment out the `packer {}` block to force Packer use the development binary installed in the previous step.
 
 5. If everything works well and the tests pass, run `go fmt ./...` on your code before
    submitting a pull-request.
@@ -94,7 +94,7 @@ adjust them for Windows or other shells.
 ### Opening a Pull Request
 
 Thank you for contributing! When you are ready to open a pull-request, you will
-need to [fork the Kubevirt plugin](https://github.com/hashicorp/packer-plugin-kubevirt#fork-destination-box), push your
+need to [fork the Kubevirt plugin](https://github.com/flippyboy/packer-plugin-kubevirt#fork-destination-box), push your
 changes to your fork, and then open a pull-request.
 
 For example, my github username is `myuser`, so I would do the following:
@@ -185,7 +185,7 @@ project. After following the steps in "Setting up Go to work on the Kubevirt plu
 
 1. Navigate to the code:
 
-   `cd $GOPATH/src/github.com/hashicorp/packer-plugin-kubevirt`
+   `cd $GOPATH/src/github.com/flippyboy/packer-plugin-kubevirt`
 
 2. Add the remote by running:
 

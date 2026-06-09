@@ -13,7 +13,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/hashicorp/packer-plugin-kubevirt/builder/kubevirt/iso"
+	"github.com/flippyboy/packer-plugin-kubevirt/builder/kubevirt/iso"
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
 	"github.com/hashicorp/packer-plugin-sdk/packer"
 
@@ -109,6 +109,42 @@ var _ = Describe("StepCreateVirtualMachine", func() {
 				create := action.(k8stesting.CreateAction)
 				obj := create.GetObject().(*v1.VirtualMachine)
 				// Simulate that VM is created and becomes Ready
+				obj.Status.Ready = true
+				return false, obj, nil
+			})
+
+			action := step.Run(ctx, state)
+			Expect(action).To(Equal(multistep.ActionContinue))
+		})
+
+		It("sets storage class on the root disk DataVolume template when configured", func() {
+			step.Config.StorageClass = "fast-ssd"
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+
+			vmClient.Fake.PrependReactor("create", "virtualmachines", func(action k8stesting.Action) (bool, runtime.Object, error) {
+				create := action.(k8stesting.CreateAction)
+				obj := create.GetObject().(*v1.VirtualMachine)
+				Expect(obj.Spec.DataVolumeTemplates).To(HaveLen(1))
+				Expect(obj.Spec.DataVolumeTemplates[0].Spec.PVC.StorageClassName).NotTo(BeNil())
+				Expect(*obj.Spec.DataVolumeTemplates[0].Spec.PVC.StorageClassName).To(Equal("fast-ssd"))
+				obj.Status.Ready = true
+				return false, obj, nil
+			})
+
+			action := step.Run(ctx, state)
+			Expect(action).To(Equal(multistep.ActionContinue))
+		})
+
+		It("omits storage class on the root disk when not configured", func() {
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+
+			vmClient.Fake.PrependReactor("create", "virtualmachines", func(action k8stesting.Action) (bool, runtime.Object, error) {
+				create := action.(k8stesting.CreateAction)
+				obj := create.GetObject().(*v1.VirtualMachine)
+				Expect(obj.Spec.DataVolumeTemplates).To(HaveLen(1))
+				Expect(obj.Spec.DataVolumeTemplates[0].Spec.PVC.StorageClassName).To(BeNil())
 				obj.Status.Ready = true
 				return false, obj, nil
 			})

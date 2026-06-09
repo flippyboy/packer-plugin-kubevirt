@@ -15,8 +15,8 @@ To install this plugin, copy and paste this code into your Packer configuration,
 packer {
   required_plugins {
     kubevirt = {
-      source  = "github.com/hashicorp/kubevirt"
-      version = ">=0.8.0"
+      source  = "github.com/flippyboy/kubevirt"
+      version = ">=0.9.0"
     }
   }
 }
@@ -25,11 +25,11 @@ packer {
 Alternatively, you can use `packer plugins install` to manage installation of this plugin.
 
 ```sh
-$ packer plugins install github.com/hashicorp/kubevirt
+$ packer plugins install github.com/flippyboy/kubevirt
 ```
 
 ### Components
 
 #### Builders
 
-- [kubevirt-iso](/packer/integrations/hashicorp/kubevirt/latest/components/builder/iso) - This builder starts from a ISO file and builds virtual machine image on a KubeVirt cluster.
+- [kubevirt-iso](/packer/integrations/flippyboy/kubevirt/latest/components/builder/iso) - This builder starts from a ISO file and builds virtual machine image on a KubeVirt cluster.

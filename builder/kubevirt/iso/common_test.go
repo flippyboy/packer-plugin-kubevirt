@@ -17,7 +17,7 @@ import (
 	"kubevirt.io/client-go/kubecli"
 	cdiv1beta1 "kubevirt.io/containerized-data-importer-api/pkg/apis/core/v1beta1"
 
-	"github.com/hashicorp/packer-plugin-kubevirt/builder/kubevirt/iso"
+	"github.com/flippyboy/packer-plugin-kubevirt/builder/kubevirt/iso"
 )
 
 var _ = Describe("WaitUntilDataVolumeSucceeded", func() {

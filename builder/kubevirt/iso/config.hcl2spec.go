@@ -23,6 +23,7 @@ type FlatConfig struct {
 	Namespace               *string           `mapstructure:"namespace" required:"true" cty:"namespace" hcl:"namespace"`
 	IsoVolumeName           *string           `mapstructure:"iso_volume_name" required:"true" cty:"iso_volume_name" hcl:"iso_volume_name"`
 	DiskSize                *string           `mapstructure:"disk_size" required:"true" cty:"disk_size" hcl:"disk_size"`
+	StorageClass            *string           `mapstructure:"storage_class" required:"false" cty:"storage_class" hcl:"storage_class"`
 	InstanceType            *string           `mapstructure:"instance_type" required:"true" cty:"instance_type" hcl:"instance_type"`
 	InstanceTypeKind        *string           `mapstructure:"instance_type_kind" required:"false" cty:"instance_type_kind" hcl:"instance_type_kind"`
 	Preference              *string           `mapstructure:"preference" required:"true" cty:"preference" hcl:"preference"`
@@ -30,6 +31,7 @@ type FlatConfig struct {
 	OperatingSystemType     *string           `mapstructure:"os_type" required:"false" cty:"os_type" hcl:"os_type"`
 	Networks                []FlatNetwork     `mapstructure:"networks" required:"false" cty:"networks" hcl:"networks"`
 	MediaFiles              []string          `mapstructure:"media_files" required:"false" cty:"media_files" hcl:"media_files"`
+	CdContent               map[string]string `mapstructure:"cd_content" required:"false" cty:"cd_content" hcl:"cd_content"`
 	BootCommand             []string          `mapstructure:"boot_command" required:"false" cty:"boot_command" hcl:"boot_command"`
 	BootWait                *string           `mapstructure:"boot_wait" required:"false" cty:"boot_wait" hcl:"boot_wait"`
 	InstallationWaitTimeout *string           `mapstructure:"installation_wait_timeout" required:"true" cty:"installation_wait_timeout" hcl:"installation_wait_timeout"`
@@ -74,6 +76,7 @@ func (*FlatConfig) HCL2Spec() map[string]hcldec.Spec {
 		"namespace":                  &hcldec.AttrSpec{Name: "namespace", Type: cty.String, Required: false},
 		"iso_volume_name":            &hcldec.AttrSpec{Name: "iso_volume_name", Type: cty.String, Required: false},
 		"disk_size":                  &hcldec.AttrSpec{Name: "disk_size", Type: cty.String, Required: false},
+		"storage_class":              &hcldec.AttrSpec{Name: "storage_class", Type: cty.String, Required: false},
 		"instance_type":              &hcldec.AttrSpec{Name: "instance_type", Type: cty.String, Required: false},
 		"instance_type_kind":         &hcldec.AttrSpec{Name: "instance_type_kind", Type: cty.String, Required: false},
 		"preference":                 &hcldec.AttrSpec{Name: "preference", Type: cty.String, Required: false},
@@ -81,6 +84,7 @@ func (*FlatConfig) HCL2Spec() map[string]hcldec.Spec {
 		"os_type":                    &hcldec.AttrSpec{Name: "os_type", Type: cty.String, Required: false},
 		"networks":                   &hcldec.BlockListSpec{TypeName: "networks", Nested: hcldec.ObjectSpec((*FlatNetwork)(nil).HCL2Spec())},
 		"media_files":                &hcldec.AttrSpec{Name: "media_files", Type: cty.List(cty.String), Required: false},
+		"cd_content":                 &hcldec.AttrSpec{Name: "cd_content", Type: cty.Map(cty.String), Required: false},
 		"boot_command":               &hcldec.AttrSpec{Name: "boot_command", Type: cty.List(cty.String), Required: false},
 		"boot_wait":                  &hcldec.AttrSpec{Name: "boot_wait", Type: cty.String, Required: false},
 		"installation_wait_timeout":  &hcldec.AttrSpec{Name: "installation_wait_timeout", Type: cty.String, Required: false},

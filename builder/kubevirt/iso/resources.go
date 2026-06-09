@@ -17,7 +17,7 @@ import (
 	cdiv1 "kubevirt.io/containerized-data-importer-api/pkg/apis/core/v1beta1"
 )
 
-func configMap(name string, mediaFiles []string) (*corev1.ConfigMap, error) {
+func configMap(name string, mediaFiles []string, cdContent map[string]string) (*corev1.ConfigMap, error) {
 	data := make(map[string]string)
 
 	for _, path := range mediaFiles {
@@ -30,6 +30,10 @@ func configMap(name string, mediaFiles []string) (*corev1.ConfigMap, error) {
 		data[filename] = string(content)
 	}
 
+	for filename, content := range cdContent {
+		data[filename] = content
+	}
+
 	return &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
@@ -38,10 +42,26 @@ func configMap(name string, mediaFiles []string) (*corev1.ConfigMap, error) {
 	}, nil
 }
 
+func pvcSpec(diskSize, storageClass string) *corev1.PersistentVolumeClaimSpec {
+	spec := &corev1.PersistentVolumeClaimSpec{
+		Resources: corev1.VolumeResourceRequirements{
+			Requests: corev1.ResourceList{
+				corev1.ResourceName(corev1.ResourceStorage): resource.MustParse(diskSize),
+			},
+		},
+		AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
+	}
+	if storageClass != "" {
+		spec.StorageClassName = ptr.To(storageClass)
+	}
+	return spec
+}
+
 func virtualMachine(
 	name,
 	isoVolumeName,
 	diskSize,
+	storageClass,
 	instanceType,
 	preferenceName,
 	instanceTypeKind,
@@ -100,14 +120,7 @@ func virtualMachine(
 						Name: name + "-rootdisk",
 					},
 					Spec: cdiv1.DataVolumeSpec{
-						PVC: &corev1.PersistentVolumeClaimSpec{
-							Resources: corev1.VolumeResourceRequirements{
-								Requests: corev1.ResourceList{
-									corev1.ResourceName(corev1.ResourceStorage): resource.MustParse(diskSize),
-								},
-							},
-							AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-						},
+						PVC:    pvcSpec(diskSize, storageClass),
 						Source: &cdiv1.DataVolumeSource{
 							Blank: &cdiv1.DataVolumeBlankImage{},
 						},
@@ -130,7 +143,7 @@ func virtualMachine(
 	}
 }
 
-func cloneVolume(name, namespace, diskSize string) *cdiv1.DataVolume {
+func cloneVolume(name, namespace, diskSize, storageClass string) *cdiv1.DataVolume {
 	return &cdiv1.DataVolume{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: cdiv1.CDIGroupVersionKind.GroupVersion().String(),
@@ -146,14 +159,7 @@ func cloneVolume(name, namespace, diskSize string) *cdiv1.DataVolume {
 					Namespace: namespace,
 				},
 			},
-			PVC: &corev1.PersistentVolumeClaimSpec{
-				Resources: corev1.VolumeResourceRequirements{
-					Requests: corev1.ResourceList{
-						corev1.ResourceName(corev1.ResourceStorage): resource.MustParse(diskSize),
-					},
-				},
-				AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-			},
+			PVC: pvcSpec(diskSize, storageClass),
 		},
 	}
 }

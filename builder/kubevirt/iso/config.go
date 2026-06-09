@@ -73,6 +73,10 @@ type Config struct {
 	IsoVolumeName string `mapstructure:"iso_volume_name" required:"true"`
 	// DiskSize is the size of the root disk to of the temporary VM.
 	DiskSize string `mapstructure:"disk_size" required:"true"`
+	// StorageClass is the Kubernetes StorageClass name used for DataVolumes
+	// created by this builder (the temporary root disk and the bootable clone).
+	// If empty, the cluster default StorageClass is used.
+	StorageClass string `mapstructure:"storage_class" required:"false"`
 	// InstanceType is the name of the InstanceType resource to use in the temporary VM.
 	InstanceType string `mapstructure:"instance_type" required:"true"`
 	// InstanceTypeKind is the kind of the InstanceType resource to use in the temporary VM.
@@ -91,6 +95,11 @@ type Config struct {
 	Networks []Network `mapstructure:"networks" required:"false"`
 	// MediaFiles is a path list of files to be copied and used during the ISO installation.
 	MediaFiles []string `mapstructure:"media_files" required:"false"`
+	// CdContent is a map of filename to inline file content for the install-time
+	// media volume. Keys are filenames at the CD root (e.g. "autounattend.xml").
+	// Can be used alongside media_files; cd_content takes precedence when both
+	// define the same filename.
+	CdContent map[string]string `mapstructure:"cd_content" required:"false"`
 	// BootCommand is a list of strings that represent the keystrokes to be sent to the VM console
 	// to automate the installation via a new VNC connection.
 	BootCommand []string `mapstructure:"boot_command" required:"false"`

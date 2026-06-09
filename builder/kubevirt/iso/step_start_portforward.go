@@ -7,7 +7,7 @@ import (
 	"context"
 	"net"
 
-	"github.com/hashicorp/packer-plugin-kubevirt/builder/kubevirt/common"
+	"github.com/flippyboy/packer-plugin-kubevirt/builder/kubevirt/common"
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
 	"github.com/hashicorp/packer-plugin-sdk/packer"
 

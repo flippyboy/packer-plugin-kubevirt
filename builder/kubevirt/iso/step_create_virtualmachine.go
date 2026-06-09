@@ -28,6 +28,7 @@ func (s *StepCreateVirtualMachine) Run(ctx context.Context, state multistep.Stat
 	namespace := s.Config.Namespace
 	isoVolumeName := s.Config.IsoVolumeName
 	diskSize := s.Config.DiskSize
+	storageClass := s.Config.StorageClass
 	instanceTypeName := s.Config.InstanceType
 	instanceTypeKind := s.Config.InstanceTypeKind
 	preferenceName := s.Config.Preference
@@ -44,6 +45,7 @@ func (s *StepCreateVirtualMachine) Run(ctx context.Context, state multistep.Stat
 		name,
 		isoVolumeName,
 		diskSize,
+		storageClass,
 		instanceTypeName,
 		preferenceName,
 		instanceTypeKind,

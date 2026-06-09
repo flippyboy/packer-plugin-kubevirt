@@ -1,4 +1,4 @@
-module github.com/hashicorp/packer-plugin-kubevirt
+module github.com/flippyboy/packer-plugin-kubevirt
 
 go 1.24.12
 

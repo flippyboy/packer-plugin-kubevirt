@@ -14,7 +14,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 
-	"github.com/hashicorp/packer-plugin-kubevirt/builder/kubevirt/iso"
+	"github.com/flippyboy/packer-plugin-kubevirt/builder/kubevirt/iso"
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
 	"github.com/hashicorp/packer-plugin-sdk/packer"
 
@@ -75,6 +75,30 @@ var _ = Describe("StepCreateBootableVolume", func() {
 	})
 
 	Context("Run", func() {
+		It("sets storage class on the cloned DataVolume when configured", func() {
+			step.Config.StorageClass = "fast-ssd"
+
+			cdiClient.PrependReactor("create", "datavolumes", func(action testing.Action) (bool, runtime.Object, error) {
+				create := action.(testing.CreateAction)
+				dv := create.GetObject().(*cdiv1beta1.DataVolume)
+				Expect(dv.Spec.PVC.StorageClassName).NotTo(BeNil())
+				Expect(*dv.Spec.PVC.StorageClassName).To(Equal("fast-ssd"))
+				dv.Status.Phase = cdiv1beta1.Succeeded
+				_ = cdiClient.Tracker().Add(dv)
+				return true, dv, nil
+			})
+
+			cdiClient.PrependReactor("create", "datasources", func(action testing.Action) (bool, runtime.Object, error) {
+				create := action.(testing.CreateAction)
+				ds := create.GetObject().(*cdiv1beta1.DataSource)
+				_ = cdiClient.Tracker().Add(ds)
+				return true, ds, nil
+			})
+
+			action := step.Run(context.Background(), state)
+			Expect(action).To(Equal(multistep.ActionContinue))
+		})
+
 		It("continues when DataVolume and DataSource are created successfully", func() {
 			cdiClient.PrependReactor("create", "datavolumes", func(action testing.Action) (bool, runtime.Object, error) {
 				create := action.(testing.CreateAction)

@@ -1,5 +1,7 @@
 # Packer Plugin KubeVirt
 
+> **Fork notice:** This repository is a fork of [hashicorp/packer-plugin-kubevirt](https://github.com/hashicorp/packer-plugin-kubevirt), maintained at [github.com/flippyboy/packer-plugin-kubevirt](https://github.com/flippyboy/packer-plugin-kubevirt).
+
 The `KubeVirt` plugin can be used with [HashiCorp Packer](https://www.packer.io) to create KubeVirt images.
 
 **Note**: This plugin is under development and is not production ready.
@@ -43,8 +45,8 @@ To install this plugin, copy and paste this code into your Packer configuration:
 packer {
   required_plugins {
     kubevirt = {
-      source  = "github.com/hashicorp/kubevirt"
-      version = ">= 0.8.0"
+      source  = "github.com/flippyboy/kubevirt"
+      version = ">= 0.9.0"
     }
   }
 }
@@ -54,10 +56,10 @@ And now run `packer init` command. The plugin will be installed automatically.
 
 ### Manual Installation
 
-Download the latest release from the [Releases](https://github.com/hashicorp/packer-plugin-kubevirt/releases) page and then install the plugin:
+Download the latest release from the [Releases](https://github.com/flippyboy/packer-plugin-kubevirt/releases) page and then install the plugin:
 
 ```shell
-$ packer plugins install --path packer-plugin-kubevirt github.com/hashicorp/kubevirt
+$ packer plugins install --path packer-plugin-kubevirt github.com/flippyboy/kubevirt
 ```
 
 ### Building From Source
@@ -65,13 +67,13 @@ $ packer plugins install --path packer-plugin-kubevirt github.com/hashicorp/kube
 Clone the repository and build the plugin from the root directory:
 
 ```shell
-$ go build -ldflags="-X github.com/hashicorp/packer-plugin-kubevirt/version.Version=0.7.0" -o packer-plugin-kubevirt
+$ go build -ldflags="-X github.com/flippyboy/packer-plugin-kubevirt/version.Version=0.9.0" -o packer-plugin-kubevirt
 ```
 
 Then install the compiled plugin:
 
 ```shell
-$ packer plugins install --path packer-plugin-kubevirt github.com/hashicorp/kubevirt
+$ packer plugins install --path packer-plugin-kubevirt github.com/flippyboy/kubevirt
 ```
 
 ## Usage

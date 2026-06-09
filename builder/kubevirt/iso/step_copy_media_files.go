@@ -26,7 +26,7 @@ func (s *StepCopyMediaFiles) Run(ctx context.Context, state multistep.StateBag) 
 
 	ui.Sayf("Creating a new ConfigMap to store media files (%s/%s)...", namespace, name)
 
-	configMap, err := configMap(name, mediaFiles)
+	configMap, err := configMap(name, mediaFiles, s.Config.CdContent)
 	if err != nil {
 		ui.Error(err.Error())
 		return multistep.ActionHalt
