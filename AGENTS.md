@@ -302,14 +302,14 @@ packer {
 
 | Package | Use |
 |---------|-----|
-| `github.com/hashicorp/packer-plugin-sdk` | Plugin framework, multistep, communicator, config decode |
+| `github.com/hashicorp/packer-plugin-sdk` (v0.6.9) | Plugin framework, multistep, communicator, config decode |
 | `kubevirt.io/client-go` | KubeVirt API (VM, VMI, port-forward, VNC subresources) |
 | `kubevirt.io/api` | KubeVirt CRD types |
 | `k8s.io/client-go` | Kubernetes clientset (ConfigMaps, etc.) |
 | `kubevirt.io/containerized-data-importer-api` | CDI DataVolume types |
 | `github.com/mitchellh/go-vnc` | Boot command automation over VNC WebSocket |
 
-Go version: see `.go-version` / `go.mod` (currently Go 1.24.x).
+Go version: see `.go-version` / `go.mod` (currently Go 1.25.10).
 
 ---
 
