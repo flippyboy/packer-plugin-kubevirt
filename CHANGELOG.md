@@ -1,3 +1,10 @@
+## 0.9.2
+
+### BUG FIXES:
+
+* fix: keep SSH/WinRM port-forward listener alive after transient KubeVirt API errors (e.g. guest not ready yet)
+* fix: close port-forward listener on step cleanup
+
 ## 0.9.1
 
 ### IMPROVEMENTS:

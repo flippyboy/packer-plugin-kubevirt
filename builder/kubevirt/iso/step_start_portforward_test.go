@@ -33,6 +33,10 @@ func (m *mockPortForwarder) StartForwarding(address *net.IPAddr, port common.For
 	return m.err
 }
 
+func (m *mockPortForwarder) Close() error {
+	return nil
+}
+
 var _ = Describe("StepStartPortForward", func() {
 	const (
 		namespace = "test-ns"

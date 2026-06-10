@@ -22,6 +22,7 @@ type StepStartPortForward struct {
 
 type PortForwarder interface {
 	StartForwarding(address *net.IPAddr, port common.ForwardedPort) error
+	Close() error
 }
 
 type PortForwarderFactory func(kind, namespace, name string, resource common.PortforwardableResource) PortForwarder
@@ -77,11 +78,23 @@ func (s *StepStartPortForward) Run(ctx context.Context, state multistep.StateBag
 			return multistep.ActionHalt
 		}
 	}
+
+	state.Put("port_forwarder", forwarder)
+	ui.Sayf(
+		"Forwarding %s:%d to VM port %d via Kubernetes API",
+		ipAddress,
+		localPort,
+		remotePort,
+	)
 	return multistep.ActionContinue
 }
 
 func (s *StepStartPortForward) Cleanup(state multistep.StateBag) {
-	// Left blank intentionally
+	forwarder, ok := state.Get("port_forwarder").(PortForwarder)
+	if !ok || forwarder == nil {
+		return
+	}
+	_ = forwarder.Close()
 }
 
 func DefaultPortForwarder(kind, namespace, name string, resource common.PortforwardableResource) PortForwarder {

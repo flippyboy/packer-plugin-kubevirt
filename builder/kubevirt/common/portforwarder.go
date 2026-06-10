@@ -24,6 +24,7 @@ import (
 	"io"
 	"net"
 	"strings"
+	"sync"
 
 	kvcorev1 "kubevirt.io/client-go/kubevirt/typed/core/v1"
 	"kubevirt.io/client-go/log"
@@ -41,6 +42,9 @@ type PortForward struct {
 type PortForwarder struct {
 	Kind, Namespace, Name string
 	Resource              PortforwardableResource
+
+	mu       sync.Mutex
+	listener net.Listener
 }
 
 type ForwardedPort struct {
@@ -74,7 +78,23 @@ func (p *PortForwarder) StartForwardingTCP(address *net.IPAddr, port ForwardedPo
 		return err
 	}
 
+	p.mu.Lock()
+	p.listener = listener
+	p.mu.Unlock()
+
 	go p.WaitForConnection(listener, port)
+	return nil
+}
+
+func (p *PortForwarder) Close() error {
+	p.mu.Lock()
+	listener := p.listener
+	p.listener = nil
+	p.mu.Unlock()
+
+	if listener != nil {
+		return listener.Close()
+	}
 	return nil
 }
 
@@ -82,14 +102,19 @@ func (p *PortForwarder) WaitForConnection(listener net.Listener, port ForwardedP
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
+			if isListenerClosed(err) {
+				log.Log.Infof("stopped forwarding local port %d", port.Local)
+				return
+			}
 			log.Log.Errorf("error accepting connection: %v", err)
 			return
 		}
 		log.Log.Infof("opening new tcp tunnel to %d", port.Remote)
 		stream, err := p.Resource.PortForward(p.Name, port.Remote, port.Protocol)
 		if err != nil {
-			log.Log.Errorf("can't access %s/%s.%s: %v", p.Kind, p.Name, p.Namespace, err)
-			return
+			log.Log.Warningf("can't access %s/%s.%s: %v", p.Kind, p.Name, p.Namespace, err)
+			conn.Close()
+			continue
 		}
 		go p.HandleConnection(conn, stream.AsConn(), port)
 	}
@@ -119,4 +144,14 @@ func HandleConnectionError(err error, port ForwardedPort) {
 	if err != nil && !strings.Contains(err.Error(), "use of closed network connection") {
 		log.Log.Errorf("error handling connection for %d: %v", port.Local, err)
 	}
+}
+
+func isListenerClosed(err error) bool {
+	if err == nil {
+		return false
+	}
+	if errors.Is(err, net.ErrClosed) {
+		return true
+	}
+	return strings.Contains(err.Error(), "use of closed network connection")
 }
