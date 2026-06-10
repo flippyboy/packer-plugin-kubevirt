@@ -153,7 +153,7 @@ func virtualMachine(
 						Name: name + "-rootdisk",
 					},
 					Spec: cdiv1.DataVolumeSpec{
-						PVC:    pvcSpec(diskSize, storageClass),
+						PVC: pvcSpec(diskSize, storageClass),
 						Source: &cdiv1.DataVolumeSource{
 							Blank: &cdiv1.DataVolumeBlankImage{},
 						},

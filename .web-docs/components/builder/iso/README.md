@@ -63,6 +63,10 @@ build {
 
 <!-- Code generated from the comments of the Config struct in builder/kubevirt/iso/config.go; DO NOT EDIT MANUALLY -->
 
+- `storage_class` (string) - StorageClass is the Kubernetes StorageClass name used for DataVolumes
+  created by this builder (the temporary root disk and the bootable clone).
+  If empty, the cluster default StorageClass is used.
+
 - `instance_type_kind` (string) - InstanceTypeKind is the kind of the InstanceType resource to use in the temporary VM.
   Other supported value is "virtualmachineclusterinstancetype".
 
@@ -76,6 +80,17 @@ build {
   If no networks are specified, a single pod network will be used.
 
 - `media_files` ([]string) - MediaFiles is a path list of files to be copied and used during the ISO installation.
+  On Linux these files are attached as an OEMDRV volume. On Windows, prefer
+  sysprep_files and sysprep_content for the KubeVirt sysprep volume.
+
+- `sysprep_files` ([]string) - SysprepFiles is a path list of files to include on the KubeVirt sysprep volume.
+  Only valid when os_type is "windows".
+
+- `sysprep_content` (map[string]string) - SysprepContent is a map of filename to inline file content for the KubeVirt
+  sysprep volume. Keys are filenames at the volume root (e.g. "autounattend.xml").
+  Values support Packer template interpolation (e.g. templatefile()).
+  Can be used alongside sysprep_files; sysprep_content takes precedence when both
+  define the same filename. Only valid when os_type is "windows".
 
 - `boot_command` ([]string) - BootCommand is a list of strings that represent the keystrokes to be sent to the VM console
   to automate the installation via a new VNC connection.

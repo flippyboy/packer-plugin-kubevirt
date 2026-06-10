@@ -1,6 +1,6 @@
 module github.com/flippyboy/packer-plugin-kubevirt
 
-go 1.24.12
+go 1.24.0
 
 replace (
 	k8s.io/client-go => k8s.io/client-go v0.31.6
