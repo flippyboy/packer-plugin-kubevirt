@@ -42,6 +42,37 @@ func (m *mockPortforwardResource) PortForward(_ string, _ int, _ string) (kvcore
 	return &mockStream{conn: server}, nil
 }
 
+func TestPortForwarderDynamicLocalPort(t *testing.T) {
+	forwarder := &common.PortForwarder{
+		Kind:      "vm",
+		Namespace: "test-ns",
+		Name:      "test-vm",
+		Resource:  &mockPortforwardResource{},
+	}
+
+	address, err := net.ResolveIPAddr("ip4", "127.0.0.1")
+	if err != nil {
+		t.Fatalf("resolve address: %v", err)
+	}
+
+	boundPort, err := forwarder.StartForwarding(address, common.ForwardedPort{
+		Local:    0,
+		Remote:   5985,
+		Protocol: common.ProtocolTCP,
+	})
+	if err != nil {
+		t.Fatalf("start forwarding: %v", err)
+	}
+	if boundPort == 0 {
+		t.Fatal("expected non-zero bound port when local port is 0")
+	}
+	t.Cleanup(func() {
+		if err := forwarder.Close(); err != nil {
+			t.Fatalf("close forwarder: %v", err)
+		}
+	})
+}
+
 func TestPortForwarderSurvivesAPIError(t *testing.T) {
 	resource := &mockPortforwardResource{}
 	resource.failures.Store(1)
@@ -67,7 +98,7 @@ func TestPortForwarderSurvivesAPIError(t *testing.T) {
 		t.Fatalf("close temp listener: %v", err)
 	}
 
-	if err := forwarder.StartForwarding(address, common.ForwardedPort{
+	if _, err := forwarder.StartForwarding(address, common.ForwardedPort{
 		Local:    localPort,
 		Remote:   5985,
 		Protocol: common.ProtocolTCP,

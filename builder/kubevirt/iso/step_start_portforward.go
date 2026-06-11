@@ -21,9 +21,11 @@ type StepStartPortForward struct {
 }
 
 type PortForwarder interface {
-	StartForwarding(address *net.IPAddr, port common.ForwardedPort) error
+	StartForwarding(address *net.IPAddr, port common.ForwardedPort) (int, error)
 	Close() error
 }
+
+const communicatorLocalPortKey = "communicator_local_port"
 
 type PortForwarderFactory func(kind, namespace, name string, resource common.PortforwardableResource) PortForwarder
 
@@ -58,32 +60,27 @@ func (s *StepStartPortForward) Run(ctx context.Context, state multistep.StateBag
 	}
 	forwarder := factory("vm", namespace, name, vm)
 
-	errChan := make(chan error, 1)
-	go func() {
-		err := forwarder.StartForwarding(address, common.ForwardedPort{
-			Local:    localPort,
-			Remote:   remotePort,
-			Protocol: common.ProtocolTCP,
-		})
-		errChan <- err
-	}()
-
-	select {
-	case <-ctx.Done():
+	if ctx.Err() != nil {
 		ui.Say("Context cancelled, stopping port forwarding...")
 		return multistep.ActionHalt
-	case err := <-errChan:
-		if err != nil {
-			ui.Error(err.Error())
-			return multistep.ActionHalt
-		}
+	}
+
+	boundPort, err := forwarder.StartForwarding(address, common.ForwardedPort{
+		Local:    localPort,
+		Remote:   remotePort,
+		Protocol: common.ProtocolTCP,
+	})
+	if err != nil {
+		ui.Error(err.Error())
+		return multistep.ActionHalt
 	}
 
 	state.Put("port_forwarder", forwarder)
+	state.Put(communicatorLocalPortKey, boundPort)
 	ui.Sayf(
 		"Forwarding %s:%d to VM port %d via Kubernetes API",
 		ipAddress,
-		localPort,
+		boundPort,
 		remotePort,
 	)
 	return multistep.ActionContinue

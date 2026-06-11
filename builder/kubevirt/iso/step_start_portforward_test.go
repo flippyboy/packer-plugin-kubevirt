@@ -24,13 +24,17 @@ import (
 )
 
 type mockPortForwarder struct {
-	called bool
-	err    error
+	called    bool
+	err       error
+	boundPort int
 }
 
-func (m *mockPortForwarder) StartForwarding(address *net.IPAddr, port common.ForwardedPort) error {
+func (m *mockPortForwarder) StartForwarding(address *net.IPAddr, port common.ForwardedPort) (int, error) {
 	m.called = true
-	return m.err
+	if m.boundPort == 0 {
+		m.boundPort = port.Local
+	}
+	return m.boundPort, m.err
 }
 
 func (m *mockPortForwarder) Close() error {
@@ -129,6 +133,18 @@ var _ = Describe("StepStartPortForward", func() {
 			action := step.Run(context.Background(), state)
 			Expect(action).To(Equal(multistep.ActionContinue))
 			Expect(mockFwd.called).To(BeTrue())
+		})
+
+		It("stores the bound local port in state", func() {
+			step.Config.SSHLocalPort = 0
+			mockFwd.boundPort = 45123
+
+			action := step.Run(context.Background(), state)
+			Expect(action).To(Equal(multistep.ActionContinue))
+
+			port, ok := state.Get("communicator_local_port").(int)
+			Expect(ok).To(BeTrue())
+			Expect(port).To(Equal(45123))
 		})
 	})
 })

@@ -167,6 +167,9 @@ func (b *Builder) buildSSHSteps() ([]multistep.Step, []error) {
 				}, nil
 			},
 			SSHPort: func(state multistep.StateBag) (int, error) {
+				if port, ok := state.Get(communicatorLocalPortKey).(int); ok && port > 0 {
+					return port, nil
+				}
 				return b.config.SSHLocalPort, nil
 			},
 		},
@@ -209,6 +212,9 @@ func (b *Builder) buildWinRMSteps() ([]multistep.Step, []error) {
 				}, nil
 			},
 			WinRMPort: func(state multistep.StateBag) (int, error) {
+				if port, ok := state.Get(communicatorLocalPortKey).(int); ok && port > 0 {
+					return port, nil
+				}
 				return b.config.WinRMLocalPort, nil
 			},
 		},

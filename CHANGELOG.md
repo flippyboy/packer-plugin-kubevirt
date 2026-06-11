@@ -1,3 +1,9 @@
+## 0.9.3
+
+### BUG FIXES:
+
+* fix: dynamically allocate local SSH/WinRM port when `ssh_local_port` or `winrm_local_port` is omitted, and wire the bound port into the communicator
+
 ## 0.9.2
 
 ### BUG FIXES:

@@ -57,16 +57,14 @@ type PortforwardableResource interface {
 	PortForward(name string, port int, protocol string) (kvcorev1.StreamInterface, error)
 }
 
-func (p *PortForwarder) StartForwarding(address *net.IPAddr, port ForwardedPort) error {
-	log.Log.Infof("forwarding %s %s:%d to %d", port.Protocol, address, port.Local, port.Remote)
-
+func (p *PortForwarder) StartForwarding(address *net.IPAddr, port ForwardedPort) (int, error) {
 	if port.Protocol == ProtocolTCP {
 		return p.StartForwardingTCP(address, port)
 	}
-	return errors.New("unknown protocol: " + port.Protocol)
+	return 0, errors.New("unknown protocol: " + port.Protocol)
 }
 
-func (p *PortForwarder) StartForwardingTCP(address *net.IPAddr, port ForwardedPort) error {
+func (p *PortForwarder) StartForwardingTCP(address *net.IPAddr, port ForwardedPort) (int, error) {
 	listener, err := net.ListenTCP(
 		port.Protocol,
 		&net.TCPAddr{
@@ -75,15 +73,19 @@ func (p *PortForwarder) StartForwardingTCP(address *net.IPAddr, port ForwardedPo
 			Port: port.Local,
 		})
 	if err != nil {
-		return err
+		return 0, err
 	}
+
+	boundPort := listener.Addr().(*net.TCPAddr).Port
+	port.Local = boundPort
+	log.Log.Infof("forwarding %s %s:%d to %d", port.Protocol, address, boundPort, port.Remote)
 
 	p.mu.Lock()
 	p.listener = listener
 	p.mu.Unlock()
 
 	go p.WaitForConnection(listener, port)
-	return nil
+	return boundPort, nil
 }
 
 func (p *PortForwarder) Close() error {
